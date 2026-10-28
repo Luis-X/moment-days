@@ -157,6 +157,35 @@
     transition: transform .16s ease, box-shadow .16s ease;
   }
   .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(6, 12, 40, 0.3); }
+
+  /* 非 macOS 平台：置灰的「敬请期待」状态 */
+  .dl-btn.is-soon {
+    background: rgba(255, 255, 255, .74);
+    color: #55555e;
+    cursor: default;
+    box-shadow: 0 10px 22px rgba(6, 12, 40, 0.16);
+  }
+  .dl-btn.is-soon:hover { transform: none; box-shadow: 0 10px 22px rgba(6, 12, 40, 0.16); }
+  .dl-btn.is-soon svg { opacity: .6; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translate(-50%, 10px);
+    padding: 9px 20px;
+    border-radius: 999px;
+    background: rgba(18, 20, 30, .92);
+    border: 1px solid rgba(255, 255, 255, .14);
+    color: #fff;
+    font-size: 12.5px;
+    letter-spacing: .3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .dl-btn svg { width: 18px; height: 18px; }
 
   .version { margin-top: 10px; font-size: 11.5px; opacity: .7; letter-spacing: .2px; }
@@ -591,15 +620,15 @@
     <h1>记住每个重要的日子</h1>
     <p class="sub">纪念日、生日、目标日，一眼看到还剩多少天</p>
 
-    <a class="dl-btn" href="dist/倒数日-1.0.dmg" download>
+    <a class="dl-btn" id="dlBtn" href="dist/倒数日-1.0.dmg" download>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="9.2"></circle>
         <path d="M12 7.4v8.2"></path>
         <path d="M8.6 12.4 12 15.8l3.4-3.4"></path>
       </svg>
-      macOS 版下载
+      <span id="dlLabel">macOS 版下载</span>
     </a>
-    <p class="version">v1.0.0 (Intel + Apple Silicon) · macOS 14.0+ · 2026-10-28</p>
+    <p class="version" id="dlVersion">v1.0.0 (Intel + Apple Silicon) · macOS 14.0+ · 2026-10-28</p>
 
     <div class="showcase">
       <!-- 主界面 -->
@@ -903,7 +932,49 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+  /* ===== 机型判断：仅 macOS 提供下载，其余平台提示敬请期待 ===== */
+  (function () {
+    const ua = navigator.userAgent || '';
+    const platform = navigator.platform || '';
+    const touchMac = /Mac/.test(platform) && navigator.maxTouchPoints > 1;
+
+    let kind = 'other';
+    if (/iPhone|iPad|iPod/i.test(ua) || touchMac) kind = 'ios';
+    else if (/Android/i.test(ua)) kind = 'android';
+    else if (/Win/i.test(platform) || /Windows/i.test(ua)) kind = 'windows';
+    else if (/Mac/i.test(platform) || /Mac OS X/i.test(ua)) kind = 'mac';
+    else if (/Linux|X11/i.test(platform)) kind = 'linux';
+
+    if (kind === 'mac') return;
+
+    const names = { ios: 'iOS', android: 'Android', windows: 'Windows', linux: 'Linux', other: '当前平台' };
+    const name = names[kind];
+    const btn = document.getElementById('dlBtn');
+    const label = document.getElementById('dlLabel');
+
+    btn.classList.add('is-soon');
+    btn.removeAttribute('download');
+    btn.setAttribute('aria-disabled', 'true');
+    label.textContent = name + ' 版 · 敬请期待';
+    document.getElementById('dlVersion').textContent = '当前仅提供 macOS 14.0+ 版本 · ' + name + ' 版敬请期待';
+
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showToast(name + ' 版正在开发中，敬请期待');
+    });
+  })();
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
   const modal = document.getElementById('installModal');
   const openModal = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
   const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
