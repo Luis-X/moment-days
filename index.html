@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倒数日 — 记住每个重要的日子</title>
+<style>
+  :root {
+    --accent: #ff9300;
+    --accent-soft: #ffb545;
+    --text: #1d1d1f;
+    --muted: #6e6e73;
+    --line: rgba(0, 0, 0, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "tnum" 1;
+    line-height: 1.6;
+    overflow: auto;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  /* ===== 背景 ===== */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-color: #131a3c;
+    background-image:
+      linear-gradient(180deg, rgba(12, 16, 38, 0.08) 0%, rgba(10, 14, 34, 0.26) 100%),
+      url("dist/bg-aurora.jpg");
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat;
+  }
+
+  .aurora::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(125% 95% at 50% 28%, rgba(0, 0, 0, 0) 42%, rgba(10, 16, 40, 0.24) 100%);
+  }
+
+  /* 星点：两层不同密度，营造微弱闪烁 */
+  .stars {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .stars::before,
+  .stars::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  .stars::before {
+    background-image:
+      radial-gradient(1.3px 1.3px at 26px 38px, rgba(255, 255, 255, .95) 50%, transparent 51%),
+      radial-gradient(1px 1px at 122px 96px, rgba(255, 255, 255, .7) 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 196px 152px, rgba(255, 255, 255, .85) 50%, transparent 51%),
+      radial-gradient(1px 1px at 74px 188px, rgba(255, 255, 255, .55) 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 158px 26px, rgba(255, 255, 255, .8) 50%, transparent 51%);
+    background-size: 260px 230px;
+    opacity: .85;
+  }
+  .stars::after {
+    background-image:
+      radial-gradient(1px 1px at 40px 60px, rgba(255, 255, 255, .8) 50%, transparent 51%),
+      radial-gradient(1.4px 1.4px at 150px 20px, rgba(255, 255, 255, .9) 50%, transparent 51%),
+      radial-gradient(.9px .9px at 90px 130px, rgba(255, 255, 255, .6) 50%, transparent 51%),
+      radial-gradient(1.1px 1.1px at 220px 110px, rgba(255, 255, 255, .75) 50%, transparent 51%);
+    background-size: 300px 260px;
+    animation: twinkle 7s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    from { opacity: .45; }
+    to { opacity: 1; }
+  }
+
+  /* ===== 布局 ===== */
+  .page {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+    padding: 0 24px;
+    position: relative;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    flex: 0 0 auto;
+  }
+
+  .brand { display: flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 600; letter-spacing: .3px; }
+
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    display: grid; place-items: center; font-size: 17px;
+    box-shadow: 0 6px 16px rgba(255, 147, 0, .28);
+  }
+
+  .topbar nav { display: none; }
+
+  .main {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  h1 {
+    font-size: 38px;
+    line-height: 1.22;
+    font-weight: 600;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.2);
+  }
+
+  .sub {
+    margin-top: 8px;
+    font-size: 13px;
+    opacity: .8;
+    letter-spacing: .3px;
+  }
+
+  .dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 18px;
+    background: #fff;
+    color: #1d1d1f;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 11px 32px;
+    border-radius: 999px;
+    box-shadow: 0 12px 28px rgba(6, 12, 40, 0.24);
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(6, 12, 40, 0.3); }
+  .dl-btn svg { width: 18px; height: 18px; }
+
+  .version { margin-top: 10px; font-size: 11.5px; opacity: .7; letter-spacing: .2px; }
+
+  /* ===== 三张界面展示 ===== */
+  .showcase {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+  }
+
+  .col { display: flex; flex-direction: column; align-items: center; }
+
+  /* 固定展示区高度，三块界面垂直居中，标签落在同一水平线 */
+  .mock-wrap {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .col-label {
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    opacity: .65;
+    text-align: center;
+  }
+
+  .mock {
+    border-radius: 12px;
+    background: #1c1c20;
+    color: #f2f2f5;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    --line: rgba(255, 255, 255, 0.08);
+    --muted: #9a9aa0;
+    box-shadow: 0 22px 46px rgba(4, 10, 32, 0.4);
+    overflow: hidden;
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  /* 深色模式下的细节 */
+  .track { background: rgba(255, 255, 255, 0.12); }
+  .tabs .off { color: #8e8e96; }
+  .row .ico, .prow .ico { background: rgba(255, 255, 255, 0.09); }
+  .row + .row { border-top-color: rgba(255, 255, 255, 0.06); }
+  .prow .sub2 { color: #ffb454; }
+
+  /* —— 主界面 —— */
+  .window { width: 320px; }
+
+  .titlebar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot:nth-child(1) { background: #ff5f57; }
+  .dot:nth-child(2) { background: #febc2e; }
+  .dot:nth-child(3) { background: #28c840; }
+  .titlebar .t { font-size: 10.5px; color: var(--muted); margin-left: 6px; }
+
+  .win-body { padding: 10px 12px 12px; }
+
+  .year { display: flex; align-items: flex-end; justify-content: space-between; }
+  .year-num { font-size: 22px; font-weight: 700; letter-spacing: -.3px; line-height: 1.1; }
+  .year-sub { font-size: 9px; color: var(--muted); margin-top: 1px; }
+  .year-pct { font-size: 19px; font-weight: 700; color: var(--accent); line-height: 1.1; text-align: right; }
+  .year-left { font-size: 9px; color: var(--muted); text-align: right; margin-top: 1px; }
+
+  .track { height: 6px; border-radius: 999px; background: #f0f0f3; overflow: hidden; margin: 7px 0 9px; }
+  .track i { display: block; height: 100%; width: 82%; background: var(--accent); border-radius: 999px; }
+
+  .tabs { display: flex; gap: 16px; font-size: 10.5px; font-weight: 700; margin-bottom: 8px; }
+  .tabs .on { color: #f2f2f5; position: relative; padding-bottom: 5px; }
+  .tabs .on::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 2.5px; border-radius: 999px; background: var(--accent);
+  }
+  .tabs .off { color: #a8a8ae; }
+
+  .fcard {
+    display: flex; align-items: center; gap: 9px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+    color: #fff;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+  }
+  .fcard .ico {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255, 255, 255, .24);
+    display: grid; place-items: center; font-size: 14px;
+  }
+  .fcard .info { flex: 1; min-width: 0; }
+  .fcard .name { font-size: 11.5px; font-weight: 600; }
+  .fcard .sub2 { font-size: 9px; opacity: .92; }
+  .fcard .days { text-align: right; min-width: 44px; }
+  .fcard .days b { font-size: 15px; }
+  .fcard .days span { display: block; font-size: 8.5px; }
+
+  .row { display: flex; align-items: center; gap: 9px; padding: 5px 10px; }
+  .row + .row { border-top: 1px solid rgba(0, 0, 0, .045); }
+  .row .ico {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #f4f4f6;
+    display: grid; place-items: center; font-size: 12px;
+  }
+  .row .info { flex: 1; min-width: 0; }
+  .row .name { font-size: 10.5px; font-weight: 600; }
+  .row .sub2 { font-size: 8.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .days { font-size: 13px; font-weight: 700; color: #4a7cf6; text-align: right; min-width: 50px; }
+  .row .days small { font-size: 8.5px; color: var(--muted); font-weight: 400; }
+
+  .tag {
+    display: inline-block; font-size: 8px; font-weight: 700;
+    color: #4a7cf6; background: rgba(74, 124, 246, .14);
+    padding: 0 4px; border-radius: 999px; margin-right: 4px;
+  }
+  .tag.green { color: #37a06a; background: rgba(55, 160, 106, .14); }
+
+  .win-foot {
+    display: flex; align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 6px 12px;
+    color: var(--muted);
+  }
+  .win-foot svg { width: 15px; height: 15px; }
+
+  /* —— 状态栏 —— */
+  .menubar {
+    width: 296px;
+    border-radius: 9px;
+    background: rgba(22, 24, 34, .58);
+    border: 1px solid rgba(255, 255, 255, .16);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 0 12px;
+    height: 30px;
+    color: #fff;
+    box-shadow: 0 14px 30px rgba(4, 10, 32, .28);
+  }
+  .menubar .item { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; }
+  .menubar .item b { font-weight: 600; }
+  .menubar .dim { opacity: .55; font-size: 10.5px; }
+
+  /* —— 状态栏列表 —— */
+  .popover { width: 236px; }
+
+  .pop-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 10px 12px 6px;
+  }
+  .pop-head .t { font-size: 13px; font-weight: 600; }
+  .pop-head .c { font-size: 9px; color: var(--muted); }
+
+  .pop-year { padding: 0 12px; }
+  .pop-year .rowline { display: flex; align-items: flex-end; justify-content: space-between; }
+  .pop-year .n { font-size: 16px; font-weight: 700; line-height: 1.1; }
+  .pop-year .s { font-size: 7.5px; color: var(--muted); }
+  .pop-year .p { font-size: 15px; font-weight: 700; color: var(--accent); line-height: 1.1; text-align: right; }
+  .pop-year .r { font-size: 7.5px; color: var(--muted); text-align: right; }
+  .pop-year .track { height: 5px; margin: 5px 0 8px; }
+
+  .pop-list { padding: 0 8px; }
+
+  .prow { display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
+  .prow .ico {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #f4f4f6; display: grid; place-items: center; font-size: 12px;
+  }
+  .prow .info { flex: 1; min-width: 0; }
+  .prow .name { font-size: 10.5px; font-weight: 600; }
+  .prow .sub2 { font-size: 8.5px; color: #c06a00; }
+  .prow .days { text-align: right; }
+  .prow .days b { font-size: 13px; }
+  .prow .days span { font-size: 8px; color: var(--muted); }
+  .prow .days .date { display: block; font-size: 8px; color: var(--muted); font-weight: 400; }
+
+  .pfeat {
+    display: flex; align-items: center; gap: 8px;
+    margin: 2px 0 4px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4a7cf6, #7ba3f8);
+    color: #fff;
+  }
+  .pfeat .ico {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255, 255, 255, .22); display: grid; place-items: center; font-size: 12px;
+  }
+  .pfeat .info { flex: 1; }
+  .pfeat .name { font-size: 10.5px; font-weight: 600; }
+  .pfeat .sub2 { font-size: 8px; opacity: .9; }
+  .pfeat .days { text-align: right; }
+  .pfeat .days b { font-size: 13px; }
+  .pfeat .days span { font-size: 8px; display: block; }
+
+  .pop-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
+  }
+  .pop-foot .open {
+    font-size: 9.5px; font-weight: 500; color: #fff;
+    background: var(--accent);
+    padding: 3px 12px; border-radius: 999px;
+  }
+  .pop-foot .ic { display: inline-flex; align-items: center; color: var(--muted); }
+  .pop-foot .ic svg { width: 15px; height: 15px; }
+
+  /* ===== 主要功能 ===== */
+  .mini-features {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px 40px;
+    margin-top: 26px;
+  }
+
+  .mf { display: flex; align-items: center; gap: 9px; text-align: left; }
+
+  .mf-ico {
+    width: 30px; height: 30px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    display: grid; place-items: center;
+    color: rgba(255, 255, 255, 0.92);
+    flex: 0 0 auto;
+  }
+  .mf-ico svg { width: 16px; height: 16px; }
+
+  .mf-txt b { display: block; font-size: 12px; font-weight: 600; line-height: 1.45; }
+  .mf-txt span { display: block; font-size: 10.5px; opacity: .64; line-height: 1.4; }
+
+  /* ===== 页脚 ===== */
+  .footer {
+    flex: 0 0 auto;
+    text-align: center;
+    font-size: 11px;
+    opacity: .65;
+    padding: 12px 0 16px;
+    letter-spacing: .2px;
+  }
+  .footer .tip { display: block; margin-top: 3px; font-size: 10.5px; opacity: .8; }
+
+  /* ===== 右上角安装说明按钮 ===== */
+  .help-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: #fff;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .22);
+    padding: 7px 15px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+  }
+  .help-btn:hover { background: rgba(255, 255, 255, .22); }
+  .help-btn:active { transform: scale(.97); }
+  .help-btn svg { width: 14px; height: 14px; opacity: .9; }
+
+  /* ===== 安装说明弹窗 ===== */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(6, 9, 22, .62);
+    backdrop-filter: blur(8px);
+  }
+  .modal.open { display: flex; }
+
+  .modal-card {
+    width: min(780px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #1c1c20;
+    color: #f2f2f5;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 16px;
+    padding: 20px 22px 18px;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .5);
+    text-align: left;
+  }
+
+  .modal-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-head h2 { font-size: 17px; font-weight: 600; letter-spacing: .5px; }
+
+  .modal-close {
+    width: 26px; height: 26px;
+    display: grid; place-items: center;
+    border: none; border-radius: 50%;
+    background: rgba(255, 255, 255, .1);
+    color: #d6d6de; cursor: pointer;
+    transition: background .18s ease;
+  }
+  .modal-close:hover { background: rgba(255, 255, 255, .2); }
+  .modal-close svg { width: 12px; height: 12px; }
+
+  .alert-note {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: rgba(255, 147, 0, .1);
+    border: 1px solid rgba(255, 147, 0, .26);
+  }
+  .alert-note svg { width: 16px; height: 16px; flex: 0 0 auto; color: #ffb340; margin-top: 1px; }
+  .alert-note b { display: block; font-size: 11.5px; font-weight: 600; line-height: 1.55; }
+  .alert-note span { display: block; margin-top: 3px; font-size: 10.5px; color: #b9b9c2; line-height: 1.6; }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .step {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .035);
+    border: 1px solid rgba(255, 255, 255, .08);
+  }
+
+  .step-head { display: flex; align-items: center; gap: 7px; }
+  .step-num {
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  .step-head h3 { font-size: 12px; font-weight: 600; }
+  .step p { margin-top: 6px; font-size: 10.5px; color: #a4a4ae; line-height: 1.6; }
+
+  .step-art {
+    margin-top: 9px;
+    border-radius: 9px;
+    overflow: hidden;
+    background: #101016;
+    border: 1px solid rgba(255, 255, 255, .07);
+  }
+  .step-art svg { display: block; width: 100%; height: auto; }
+  .step-art text { font-family: "PingFang SC", "Hiragino Sans GB", sans-serif; }
+
+  .cmd-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #101016;
+    border: 1px solid rgba(255, 255, 255, .08);
+  }
+  .cmd-row code {
+    flex: 1; min-width: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; color: #7fd1ff;
+    white-space: nowrap; overflow-x: auto;
+  }
+  .cmd-row button {
+    flex: 0 0 auto;
+    font-family: inherit; font-size: 10.5px;
+    color: #fff; cursor: pointer;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+  .cmd-row button:hover { background: rgba(255, 255, 255, .22); }
+
+  .modal-foot { margin-top: 12px; font-size: 10.5px; color: #8b8b96; line-height: 1.6; }
+
+  @media (max-width: 720px) {
+    .steps { grid-template-columns: 1fr; }
+    .modal-card { padding: 16px; }
+  }
+
+  /* 小屏：纵向堆叠 */
+  @media (max-width: 920px) {
+    .main { padding: 24px 0 8px; }
+    .showcase { flex-wrap: wrap; row-gap: 18px; margin-bottom: 8px; }
+    .mock-wrap { height: auto; padding: 10px 0; }
+  }
+
+  @media (max-width: 680px) {
+    .topbar nav { gap: 16px; font-size: 12px; }
+    h1 { font-size: 25px; letter-spacing: 1px; }
+    .sub { font-size: 12px; }
+    .dl-btn { font-size: 14px; padding: 10px 26px; }
+    .showcase { gap: 16px; }
+    .window { width: 300px; }
+    .menubar { width: 280px; }
+    .popover { width: 232px; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="stars"></div>
+
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">📅</span><span>倒数日</span></div>
+    <button class="help-btn" id="helpBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M9.6 9.4a2.4 2.4 0 1 1 3.4 2.2c-.7.3-1 .9-1 1.6v.4"></path>
+        <path d="M12 16.6v.1"></path>
+      </svg>
+      安装说明
+    </button>
+  </header>
+
+  <main class="main">
+    <h1>记住每个重要的日子</h1>
+    <p class="sub">纪念日、生日、目标日，一眼看到还剩多少天</p>
+
+    <a class="dl-btn" href="dist/倒数日-1.0.dmg" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9.2"></circle>
+        <path d="M12 7.4v8.2"></path>
+        <path d="M8.6 12.4 12 15.8l3.4-3.4"></path>
+      </svg>
+      macOS 版下载
+    </a>
+    <p class="version">v1.0.0 (Intel + Apple Silicon) · macOS 14.0+ · 2026-10-28</p>
+
+    <div class="showcase">
+      <!-- 主界面 -->
+      <div class="col">
+        <div class="mock-wrap">
+        <div class="mock window">
+          <div class="titlebar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="t">倒数日</span>
+          </div>
+          <div class="win-body">
+            <div class="year">
+              <div>
+                <div class="year-num">2026</div>
+                <div class="year-sub">10月28日 · 农历九月十七</div>
+              </div>
+              <div>
+                <div class="year-pct">82%</div>
+                <div class="year-left">剩余 64 天</div>
+              </div>
+            </div>
+            <div class="track"><i></i></div>
+
+            <div class="tabs">
+              <span class="on">全部</span><span class="off">纪念日</span>
+              <span class="off">生日</span><span class="off">日子</span>
+            </div>
+
+            <div class="fcard">
+              <div class="ico">🎂</div>
+              <div class="info">
+                <div class="name">妈妈的生日</div>
+                <div class="sub2">生日 · 11月28日</div>
+              </div>
+              <div class="days"><b>31</b><span>天后</span></div>
+            </div>
+
+            <div class="row">
+              <div class="ico">✈️</div>
+              <div class="info">
+                <div class="name">毕业旅行</div>
+                <div class="sub2"><span class="tag">纪念日</span>2025年8月1日 · 已走过 88 天</div>
+              </div>
+              <div class="days">88<small> 天前</small></div>
+            </div>
+            <div class="row">
+              <div class="ico">🌟</div>
+              <div class="info">
+                <div class="name">百日计划达成</div>
+                <div class="sub2"><span class="tag green">日子</span>2027年2月5日 · 一次性目标</div>
+              </div>
+              <div class="days">100<small> 天后</small></div>
+            </div>
+          </div>
+          <div class="win-foot">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"></path>
+            </svg>
+          </div>
+        </div>
+        </div>
+        <span class="col-label">主界面</span>
+      </div>
+
+      <!-- 状态栏 -->
+      <div class="col">
+        <div class="mock-wrap">
+          <div class="mock menubar">
+            <span class="dim">WLAN</span>
+            <span class="dim">100%</span>
+            <span class="item">📅 <b>妈妈的生日</b> 生日 · 31天后</span>
+          </div>
+        </div>
+        <span class="col-label">状态栏</span>
+      </div>
+
+      <!-- 状态栏列表 -->
+      <div class="col">
+        <div class="mock-wrap">
+        <div class="mock popover">
+          <div class="pop-head">
+            <span class="t">倒数日</span><span class="c">3 条</span>
+          </div>
+          <div class="pop-year">
+            <div class="rowline">
+              <div>
+                <div class="n">2026</div>
+                <div class="s">10月28日 · 农历九月十七</div>
+              </div>
+              <div>
+                <div class="p">82%</div>
+                <div class="r">剩余 64 天</div>
+              </div>
+            </div>
+            <div class="track"><i></i></div>
+          </div>
+          <div class="pop-list">
+            <div class="pfeat">
+              <div class="ico">🎂</div>
+              <div class="info">
+                <div class="name">妈妈的生日</div>
+                <div class="sub2">生日 · 11月28日</div>
+              </div>
+              <div class="days"><b>31</b><span>天后</span></div>
+            </div>
+            <div class="prow">
+              <div class="ico">✈️</div>
+              <div class="info">
+                <div class="name">毕业旅行</div>
+                <div class="sub2">纪念日 · 已走过 88 天</div>
+              </div>
+              <div class="days"><b>88</b><span> 天前</span><span class="date">2025年8月1日</span></div>
+            </div>
+            <div class="prow">
+              <div class="ico">🌟</div>
+              <div class="info">
+                <div class="name">百日计划达成</div>
+                <div class="sub2">日子 · 一次性目标</div>
+              </div>
+              <div class="days"><b>100</b><span> 天后</span><span class="date">2027年2月5日</span></div>
+            </div>
+          </div>
+          <div class="pop-foot">
+            <span class="ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"></path>
+              </svg>
+            </span>
+            <span class="open">打开主界面</span>
+            <span class="ic">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v9"></path>
+                <path d="M6.6 6.6a8 8 0 1 0 10.8 0"></path>
+              </svg>
+            </span>
+          </div>
+        </div>
+        </div>
+        <span class="col-label">状态栏列表</span>
+      </div>
+    </div>
+
+    <!-- 主要功能 -->
+    <div class="mini-features">
+      <div class="mf">
+        <span class="mf-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3h10M7 21h10"></path>
+            <path d="M8.5 3v3.2c0 1.9 3.5 3.6 3.5 5.8s-3.5 3.9-3.5 5.8V21"></path>
+            <path d="M15.5 3v3.2c0 1.9-3.5 3.6-3.5 5.8s3.5 3.9 3.5 5.8V21"></path>
+          </svg>
+        </span>
+        <div class="mf-txt">
+          <b>倒数与累计</b>
+          <span>剩余天数一眼看清</span>
+        </div>
+      </div>
+      <div class="mf">
+        <span class="mf-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20.5h16"></path>
+            <path d="M6.5 20.5v-5.2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v5.2"></path>
+            <path d="M12 13.3V9.6"></path>
+            <path d="M12 9.2c.9-1 .5-2-.1-2.7-.6.7-1 1.7.1 2.7z"></path>
+          </svg>
+        </span>
+        <div class="mf-txt">
+          <b>农历与生日</b>
+          <span>公历农历自由切换</span>
+        </div>
+      </div>
+      <div class="mf">
+        <span class="mf-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.5 3.5h5l-1 5.2 3 3.3v1.5h-9v-1.5l3-3.3-1-5.2z"></path>
+            <path d="M12 13.5V21"></path>
+          </svg>
+        </span>
+        <div class="mf-txt">
+          <b>菜单栏常驻</b>
+          <span>随时展开查看</span>
+        </div>
+      </div>
+      <div class="mf">
+        <span class="mf-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.6 0 2-1 1.4-2-.6-1.2.2-2.3 1.6-2.3h1.7c2 0 3.3-1.5 3.3-3.6C20.1 6.9 16.5 3.5 12 3.5z"></path>
+            <circle cx="9" cy="9.5" r="1"></circle>
+            <circle cx="13.6" cy="8" r="1"></circle>
+            <circle cx="7.6" cy="14" r="1"></circle>
+          </svg>
+        </span>
+        <div class="mf-txt">
+          <b>主题与颜色</b>
+          <span>深浅色与八种主色</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" id="install">
+    Copyright © 2026 倒数日
+    <span class="tip">下载后打开 DMG 拖入「应用程序」；首次打开请右键选择“打开”</span>
+  </footer>
+</div>
+
+<!-- 安装说明弹窗 -->
+<div class="modal" id="installModal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="installTitle">
+    <div class="modal-head">
+      <h2 id="installTitle">安装说明</h2>
+      <button class="modal-close" id="installClose" aria-label="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="alert-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.6 21 19.2H3z"></path>
+        <path d="M12 9.6v4.2"></path>
+        <path d="M12 16.6v.1"></path>
+      </svg>
+      <div>
+        <b>Apple 无法验证“倒数日.app”是否包含可能危害 Mac 安全或泄漏隐私的恶意软件。</b>
+        <span>这是 macOS 对未做 Apple 公证的第三方应用的默认拦截提示，并不代表检测到病毒。按下面任一方式放行一次即可，之后可正常双击打开。</span>
+      </div>
+    </div>
+
+    <div class="steps">
+      <!-- 步骤 1 -->
+      <div class="step">
+        <div class="step-head"><span class="step-num">1</span><h3>右键打开</h3></div>
+        <p>在「应用程序」里右键点击「倒数日」，选择“打开”，弹窗中再点一次“打开”。</p>
+        <div class="step-art">
+          <svg viewBox="0 0 200 104" role="img" aria-label="右键菜单示意图">
+            <rect width="200" height="104" fill="#101016"></rect>
+            <rect x="22" y="28" width="36" height="36" rx="9" fill="#ff9300"></rect>
+            <rect x="31" y="41" width="18" height="13" rx="2" fill="#fff" opacity=".95"></rect>
+            <rect x="31" y="41" width="18" height="4" rx="2" fill="#ff9300"></rect>
+            <path d="M47 52l11 4.4-4.4 1.2-1.2 4.4z" fill="#fff" stroke="#101016" stroke-width="1"></path>
+            <rect x="88" y="12" width="88" height="80" rx="7" fill="#26262d" stroke="rgba(255,255,255,.14)"></rect>
+            <rect x="92" y="16" width="80" height="19" rx="5" fill="rgba(255,147,0,.26)"></rect>
+            <text x="99" y="29" font-size="9" fill="#fff">打开</text>
+            <text x="99" y="49" font-size="9" fill="#c9c9d2">显示包内容</text>
+            <text x="99" y="66" font-size="9" fill="#c9c9d2">拷贝</text>
+            <text x="99" y="83" font-size="9" fill="#c9c9d2">移到废纸篓</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 步骤 2 -->
+      <div class="step">
+        <div class="step-head"><span class="step-num">2</span><h3>系统设置放行</h3></div>
+        <p>打开「系统设置 → 隐私与安全性」，下滑到「安全性」，点击“仍要打开”。</p>
+        <div class="step-art">
+          <svg viewBox="0 0 200 104" role="img" aria-label="系统设置隐私与安全性示意图">
+            <rect width="200" height="104" fill="#101016"></rect>
+            <rect x="12" y="10" width="176" height="84" rx="8" fill="#24242b" stroke="rgba(255,255,255,.12)"></rect>
+            <rect x="20" y="18" width="44" height="6" rx="3" fill="#4b4b55"></rect>
+            <rect x="20" y="31" width="38" height="6" rx="3" fill="#383840"></rect>
+            <rect x="20" y="44" width="42" height="6" rx="3" fill="#383840"></rect>
+            <rect x="20" y="57" width="34" height="6" rx="3" fill="#383840"></rect>
+            <rect x="20" y="70" width="40" height="6" rx="3" fill="#383840"></rect>
+            <text x="78" y="30" font-size="9" fill="#ededf3">安全性</text>
+            <text x="78" y="47" font-size="7.5" fill="#9a9aa4">“倒数日”已被阻止打开</text>
+            <rect x="78" y="55" width="53" height="16" rx="8" fill="#ff9300"></rect>
+            <text x="87" y="66" font-size="8" fill="#fff">仍要打开</text>
+            <path d="M126 74l10 4-4 1-1 4z" fill="#fff" stroke="#101016" stroke-width="1"></path>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 步骤 3 -->
+      <div class="step">
+        <div class="step-head"><span class="step-num">3</span><h3>终端命令</h3></div>
+        <p>以上两步仍被拦截时，在「终端」执行一次命令，移除应用的隔离属性。</p>
+        <div class="step-art">
+          <svg viewBox="0 0 200 104" role="img" aria-label="终端命令示意图">
+            <rect width="200" height="104" fill="#0c0c11"></rect>
+            <circle cx="14" cy="13" r="3.2" fill="#ff5f57"></circle>
+            <circle cx="25" cy="13" r="3.2" fill="#febc2e"></circle>
+            <circle cx="36" cy="13" r="3.2" fill="#28c840"></circle>
+            <text x="12" y="40" font-size="8.5" fill="#8be0a4" font-family="ui-monospace, Menlo, monospace">% xattr -cr</text>
+            <text x="12" y="55" font-size="8.5" fill="#dcdce6" font-family="ui-monospace, Menlo, monospace">/Applications/倒数日.app</text>
+            <rect x="12" y="63" width="6" height="10" fill="#dcdce6"></rect>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-row">
+      <code>xattr -cr /Applications/倒数日.app</code>
+      <button id="copyCmd">复制</button>
+    </div>
+
+    <p class="modal-foot">放行操作只需一次。应用不联网、不收集任何数据，全部记录保存在本机；如需彻底跳过校验，可在安装后把 App 拖入「应用程序」并执行上面的命令。</p>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById('installModal');
+  const openModal = () => { modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+  const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+
+  document.getElementById('helpBtn').addEventListener('click', openModal);
+  document.getElementById('installClose').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  document.getElementById('copyCmd').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText('xattr -cr /Applications/倒数日.app');
+      e.target.textContent = '已复制';
+    } catch (err) {
+      e.target.textContent = '复制失败';
+    }
+    setTimeout(() => { e.target.textContent = '复制'; }, 1600);
+  });
+</script>
+</body>
+</html>
