@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>倒数日 — 记住每个重要的日子</title>
+<link rel="icon" type="image/png" href="dist/favicon.png">
+<link rel="apple-touch-icon" href="dist/favicon.png">
 <style>
   :root {
     --accent: #ff9300;
@@ -13,12 +15,21 @@
     --line: rgba(0, 0, 0, 0.08);
   }
 
+  /* 抖音美好体（免费商用），随站点自托管 */
+  @font-face {
+    font-family: "DouyinSans";
+    src: url("dist/douyin.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   html, body { height: 100%; }
 
   body {
-    font-family: "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-family: "DouyinSans", "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "tnum" 1;
@@ -100,17 +111,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 58px;
+    padding: 16px 0 0;
     flex: 0 0 auto;
   }
 
-  .brand { display: flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 600; letter-spacing: .3px; }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 20px; letter-spacing: .5px;
+  }
 
   .brand-mark {
-    width: 34px; height: 34px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
-    display: grid; place-items: center; font-size: 17px;
-    box-shadow: 0 6px 16px rgba(255, 147, 0, .28);
+    width: 70px; height: 70px;
+    border-radius: 15.7px; /* 苹果图标圆角比例（≈22.37%） */
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 6px 14px rgba(255, 90, 100, .3);
   }
 
   .topbar nav { display: none; }
@@ -240,6 +255,11 @@
 
   /* —— 主界面 —— */
   .window { width: 320px; }
+
+  /* 界面展示 mock 内部文字保持系统默认字体，不跟随全局标题字体 */
+  .window, .menubar, .popover {
+    font-family: "PingFang SC", "Hiragino Sans GB", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  }
 
   .titlebar {
     display: flex; align-items: center; gap: 6px;
@@ -612,7 +632,7 @@
 
 <div class="page">
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">📅</span><span>倒数日</span></div>
+    <div class="brand"><img class="brand-mark" src="dist/logo.png" alt="倒数日"><span>倒数日</span></div>
     <button class="help-btn" id="helpBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="9"></circle>
