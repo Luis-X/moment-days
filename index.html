@@ -301,7 +301,11 @@
   .year-left { font-size: 9px; color: var(--muted); text-align: right; margin-top: 1px; }
 
   .track { height: 6px; border-radius: 999px; background: #f0f0f3; overflow: hidden; margin: 7px 0 9px; }
-  .track i { display: block; height: 100%; width: 82%; background: var(--accent); border-radius: 999px; }
+  .track i { display: block; height: 100%; width: 83%; background: var(--accent); border-radius: 999px; }
+
+  /* 置顶标记：焦点卡片右上角的小图钉 */
+  .fcard, .pfeat { position: relative; }
+  .fcard .pin, .pfeat .pin { position: absolute; top: 4px; right: 7px; font-size: 8px; opacity: .95; }
 
   .tabs { display: flex; gap: 16px; font-size: 10.5px; font-weight: 700; margin-bottom: 8px; }
   .tabs .on { color: #f2f2f5; position: relative; padding-bottom: 5px; }
@@ -690,11 +694,11 @@
             <div class="year">
               <div>
                 <div class="year-num">2026</div>
-                <div class="year-sub">10月28日 · 农历九月十七</div>
+                <div class="year-sub">10月29日 · 农历九月十八</div>
               </div>
               <div>
-                <div class="year-pct">82%</div>
-                <div class="year-left">剩余 64 天</div>
+                <div class="year-pct">83%</div>
+                <div class="year-left">剩余 63 天</div>
               </div>
             </div>
             <div class="track"><i></i></div>
@@ -705,29 +709,30 @@
             </div>
 
             <div class="fcard">
-              <div class="ico">🎂</div>
+              <div class="ico">❤️</div>
               <div class="info">
-                <div class="name">妈妈的生日</div>
-                <div class="sub2">生日 · 11月28日</div>
+                <div class="name">在一起</div>
+                <div class="sub2">纪念日 · 12月24日 · 已走过 1040 天</div>
               </div>
-              <div class="days"><b>31</b><span>天后</span></div>
+              <div class="days"><b>56</b><span>天后</span></div>
+              <span class="pin">📌</span>
             </div>
 
             <div class="row">
-              <div class="ico">✈️</div>
+              <div class="ico">🎂</div>
               <div class="info">
-                <div class="name">毕业旅行</div>
-                <div class="sub2"><span class="tag">纪念日</span>2025年8月1日 · 已走过 88 天</div>
+                <div class="name">妈妈的生日</div>
+                <div class="sub2"><span class="tag">生日</span>11月28日 · 每年提醒</div>
               </div>
-              <div class="days">88<small> 天前</small></div>
+              <div class="days">30<small> 天后</small></div>
             </div>
             <div class="row">
-              <div class="ico">🌟</div>
+              <div class="ico">📚</div>
               <div class="info">
-                <div class="name">百日计划达成</div>
-                <div class="sub2"><span class="tag green">日子</span>2027年2月5日 · 一次性目标</div>
+                <div class="name">考研初试</div>
+                <div class="sub2"><span class="tag green">日子</span>2026年12月20日 · 一次性目标</div>
               </div>
-              <div class="days">100<small> 天后</small></div>
+              <div class="days">52<small> 天后</small></div>
             </div>
           </div>
           <div class="win-foot">
@@ -747,7 +752,7 @@
           <div class="mock menubar">
             <span class="dim">WLAN</span>
             <span class="dim">100%</span>
-            <span class="item">📅 <b>妈妈的生日</b> 生日 · 31天后</span>
+            <span class="item">❤️ <b>在一起</b> 纪念日 · 56天后</span>
           </div>
         </div>
         <span class="col-label">状态栏</span>
@@ -764,39 +769,40 @@
             <div class="rowline">
               <div>
                 <div class="n">2026</div>
-                <div class="s">10月28日 · 农历九月十七</div>
+                <div class="s">10月29日 · 农历九月十八</div>
               </div>
               <div>
-                <div class="p">82%</div>
-                <div class="r">剩余 64 天</div>
+                <div class="p">83%</div>
+                <div class="r">剩余 63 天</div>
               </div>
             </div>
             <div class="track"><i></i></div>
           </div>
           <div class="pop-list">
             <div class="pfeat">
+              <div class="ico">❤️</div>
+              <div class="info">
+                <div class="name">在一起</div>
+                <div class="sub2">纪念日 · 已走过 1040 天</div>
+              </div>
+              <div class="days"><b>56</b><span>天后</span></div>
+              <span class="pin">📌</span>
+            </div>
+            <div class="prow">
               <div class="ico">🎂</div>
               <div class="info">
                 <div class="name">妈妈的生日</div>
-                <div class="sub2">生日 · 11月28日</div>
+                <div class="sub2">生日 · 每年提醒</div>
               </div>
-              <div class="days"><b>31</b><span>天后</span></div>
+              <div class="days"><b>30</b><span> 天后</span><span class="date">11月28日</span></div>
             </div>
             <div class="prow">
-              <div class="ico">✈️</div>
+              <div class="ico">📚</div>
               <div class="info">
-                <div class="name">毕业旅行</div>
-                <div class="sub2">纪念日 · 已走过 88 天</div>
-              </div>
-              <div class="days"><b>88</b><span> 天前</span><span class="date">2025年8月1日</span></div>
-            </div>
-            <div class="prow">
-              <div class="ico">🌟</div>
-              <div class="info">
-                <div class="name">百日计划达成</div>
+                <div class="name">考研初试</div>
                 <div class="sub2">日子 · 一次性目标</div>
               </div>
-              <div class="days"><b>100</b><span> 天后</span><span class="date">2027年2月5日</span></div>
+              <div class="days"><b>52</b><span> 天后</span><span class="date">2026年12月20日</span></div>
             </div>
           </div>
           <div class="pop-foot">
