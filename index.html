@@ -291,6 +291,9 @@
   .dot:nth-child(2) { background: #febc2e; }
   .dot:nth-child(3) { background: #28c840; }
   .titlebar .t { font-size: 10.5px; color: var(--muted); margin-left: 6px; }
+  /* 工具栏「添加」按钮：窗口右上角 */
+  .titlebar .add { margin-left: auto; display: inline-flex; color: #4a7cf6; }
+  .titlebar .add svg { width: 13px; height: 13px; }
 
   .win-body { padding: 10px 12px 12px; }
 
@@ -303,9 +306,16 @@
   .track { height: 6px; border-radius: 999px; background: #f0f0f3; overflow: hidden; margin: 7px 0 9px; }
   .track i { display: block; height: 100%; width: 83%; background: var(--accent); border-radius: 999px; }
 
-  /* 置顶标记：焦点卡片右上角的小图钉 */
-  .fcard, .pfeat { position: relative; }
-  .fcard .pin, .pfeat .pin { position: absolute; top: 4px; right: 7px; font-size: 8px; opacity: .95; }
+  /* 置顶标记：图标右上角的小图钉徽标 */
+  .ico-wrap { position: relative; display: inline-flex; flex: 0 0 auto; }
+  .pin-badge {
+    position: absolute; top: -2px; right: -2px;
+    width: 13px; height: 13px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: #fff; color: var(--accent);
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .85);
+  }
+  .pin-badge svg { width: 7px; height: 7px; }
 
   .tabs { display: flex; gap: 16px; font-size: 10.5px; font-weight: 700; margin-bottom: 8px; }
   .tabs .on { color: #f2f2f5; position: relative; padding-bottom: 5px; }
@@ -446,6 +456,8 @@
     background: var(--accent);
     padding: 3px 12px; border-radius: 999px;
   }
+  /* 左下角：设置 + 添加 并排 */
+  .pop-foot .foot-left { display: inline-flex; align-items: center; gap: 1px; }
   .pop-foot .ic { display: inline-flex; align-items: center; color: var(--muted); }
   .pop-foot .ic svg { width: 15px; height: 15px; }
 
@@ -689,6 +701,11 @@
           <div class="titlebar">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             <span class="t">倒数日</span>
+            <span class="add">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+            </span>
           </div>
           <div class="win-body">
             <div class="year">
@@ -709,13 +726,17 @@
             </div>
 
             <div class="fcard">
-              <div class="ico">❤️</div>
+              <div class="ico-wrap">
+                <div class="ico">❤️</div>
+                <span class="pin-badge">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.4 3.6 20.4 9.6 18.5 11.5 17.6 10.6 12.9 15.3 12.4 18.5 9.4 15.5 4.2 20.7 3.3 19.8 8.5 14.6 5.5 11.6 8.7 11.1 13.4 6.4 12.5 5.5z"/></svg>
+                </span>
+              </div>
               <div class="info">
                 <div class="name">在一起</div>
                 <div class="sub2">纪念日 · 12月24日 · 已走过 1040 天</div>
               </div>
               <div class="days"><b>56</b><span>天后</span></div>
-              <span class="pin">📌</span>
             </div>
 
             <div class="row">
@@ -780,13 +801,17 @@
           </div>
           <div class="pop-list">
             <div class="pfeat">
-              <div class="ico">❤️</div>
+              <div class="ico-wrap">
+                <div class="ico">❤️</div>
+                <span class="pin-badge">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.4 3.6 20.4 9.6 18.5 11.5 17.6 10.6 12.9 15.3 12.4 18.5 9.4 15.5 4.2 20.7 3.3 19.8 8.5 14.6 5.5 11.6 8.7 11.1 13.4 6.4 12.5 5.5z"/></svg>
+                </span>
+              </div>
               <div class="info">
                 <div class="name">在一起</div>
                 <div class="sub2">纪念日 · 已走过 1040 天</div>
               </div>
               <div class="days"><b>56</b><span>天后</span></div>
-              <span class="pin">📌</span>
             </div>
             <div class="prow">
               <div class="ico">🎂</div>
@@ -806,11 +831,19 @@
             </div>
           </div>
           <div class="pop-foot">
-            <span class="ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"></path>
-              </svg>
+            <span class="foot-left">
+              <span class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.1 14.6a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5v.2a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H2a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h.1a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v.1a1.6 1.6 0 0 0 1.5 1h.2a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"></path>
+                </svg>
+              </span>
+              <span class="ic">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="8.4"></circle>
+                  <path d="M12 8.4v7.2M8.4 12h7.2"></path>
+                </svg>
+              </span>
             </span>
             <span class="open">打开主界面</span>
             <span class="ic">
