@@ -596,6 +596,13 @@
     .window { width: 300px; }
     .menubar { width: 280px; }
     .popover { width: 232px; }
+    /* 移动端功能说明：2×2 网格，保持对齐 */
+    .mini-features {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      justify-content: center;
+      gap: 12px 28px;
+    }
   }
 </style>
 </head>
